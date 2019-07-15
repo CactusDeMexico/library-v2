@@ -20,20 +20,23 @@ public class BookServiceImpl implements BookService {
     @Qualifier("bookRepository")
     @Autowired
     private BookRepository bookRepository;
-    @Override
-    public List<Book> findAll() { return bookRepository.findAll();
-    }
 
+    @Override
+    public List<Book> findAll() {
+        return bookRepository.findAll();
+    }
 
     @Override
     public List<Book> borrowBook() {
 
         List<Book> books = bookRepository.findAll();
         List<Borrow> borrowedBook = bookRepository.findAllBorrowBook();
-
-        List<Book> availableBooks=books;
+        List<Book> availableBooks = books;
         return availableBooks;
     }
+
+    @Override
+    public Book findById(int id_book) { return bookRepository.findById(id_book);}
 
     @Override
     public List<Borrow> findAllBorrowBook() {

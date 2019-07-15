@@ -18,6 +18,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 
 import org.springframework.web.bind.annotation.*;
 
+import java.io.File;
 import java.sql.Date;
 
 import java.text.SimpleDateFormat;
@@ -56,19 +57,22 @@ public class LibraryControleur {
 
     private final JavaMailSender javaMailSender;
 
-    @Scheduled(cron = "0 0 8 * * *")
+   @Scheduled(cron = "0-10 * * * *  ?")
     public void sendEmail() {
         List<Borrow> borrowed = borrowRepository.findAllBorrowBook();
         for (Borrow borrowedBook : borrowed) {
-            if ((java.sql.Date.valueOf(LocalDate.now())).compareTo(borrowedBook.getReturnDate()) > 0) {
+            if (borrowedBook.getReturnDate().compareTo((java.sql.Date.valueOf(LocalDate.now()))) > 0) {
                 User user = userRepository.findById(borrowedBook.getIdUser());
                 SimpleMailMessage msg = new SimpleMailMessage();
-
+                Book book = bookService.findById(borrowedBook.getIdBook());
                 msg.setTo(user.getEmail());
                 msg.setSubject("Livre à rendre");
                 SimpleDateFormat dateFormat = new SimpleDateFormat("MM-dd-yyyy");
                 String date = dateFormat.format(borrowedBook.getReturnDate());
-                msg.setText("vous deviez rendre le livre le :" + date + "\n Nous vous prions de retourner le livre ");
+                msg.setText("Vous deviez rendre le livre le :" +book.getTitle()+" le "+ date
+                        + "\n Nous vous prions de retourner le livre "
+                       );
+
                 System.out.println("email sended");
                 javaMailSender.send(msg);
             }
@@ -140,7 +144,7 @@ public class LibraryControleur {
 
         Borrow borrowed = borrowRepository.findBorrowedBook(idBorrow);
 
-        LocalDate creationDate = borrowed.getCreationDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        LocalDate creationDate = borrowed.getReturnDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
         LocalDate next4Week = creationDate.plus(4, ChronoUnit.WEEKS);
         borrowed.setReturnDate(java.sql.Date.valueOf(next4Week));
         borrowed.setExtended(true);
