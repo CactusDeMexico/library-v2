@@ -35,7 +35,7 @@
                                 <p class="card-text hide" th:text="${books.getSummary()}">
 
                                 </p>
-                                <td th:if="${!userName.equals('0')}">
+                                <td th:if="${!userName.equals('0')} and ${books.getNbCopyAvailable()>0}">
                                     <form method="POST" th:action="@{/borrow/(idbook=${books.getIdBook()})}">
                                         <button type="submit" name="submit" value="value"
                                                 th:href="@{/borrow/(idbook=${books.getIdBook()})}"
