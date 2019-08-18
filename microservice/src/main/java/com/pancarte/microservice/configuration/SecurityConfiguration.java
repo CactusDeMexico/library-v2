@@ -37,7 +37,6 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .passwordEncoder(bCryptPasswordEncoder);
     }
 
-
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.authorizeRequests()
@@ -48,6 +47,17 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .antMatchers("/borrow").permitAll()
                 .antMatchers("/getborrow").permitAll()
                 .antMatchers("/extendBorrow").permitAll()
+                .antMatchers("/getresbyid").permitAll()
+                .antMatchers("/getresbytitle").permitAll()
+                .antMatchers("/reserv").permitAll()
+                .antMatchers("/getallborrow").permitAll()
+                .antMatchers("/cancel").permitAll()
+                .antMatchers("/returnbook").permitAll()
+                .antMatchers("/deleteresa").permitAll()
+
+                .antMatchers("/getBooks").permitAll()
+
+                .antMatchers("/getallreser").permitAll()
 
                 .antMatchers("/home").permitAll()
                 .antMatchers("/index").permitAll()

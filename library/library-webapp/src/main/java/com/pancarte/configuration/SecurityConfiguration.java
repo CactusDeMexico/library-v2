@@ -55,6 +55,10 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .antMatchers("/img/**").permitAll()
                 .antMatchers("/borrow").hasAuthority("ADMIN")
                 .antMatchers("/borrowed").hasAuthority("ADMIN")
+                .antMatchers("/reserv").hasAuthority("ADMIN")
+                .antMatchers("/returnbook").hasAuthority("ADMIN")
+.antMatchers("/getBooks").hasAuthority("ADMIN")
+
                 .antMatchers("/loggedhome").hasAuthority("ADMIN").anyRequest()
 
                 .authenticated().and().csrf().disable()

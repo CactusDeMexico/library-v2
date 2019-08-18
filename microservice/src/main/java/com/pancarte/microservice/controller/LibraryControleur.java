@@ -2,9 +2,7 @@ package com.pancarte.microservice.controller;
 
 import com.pancarte.microservice.model.*;
 
-import com.pancarte.microservice.repository.BorrowRepository;
-import com.pancarte.microservice.repository.RoleRepository;
-import com.pancarte.microservice.repository.UserRepository;
+import com.pancarte.microservice.repository.*;
 import com.pancarte.microservice.service.BookService;
 import com.pancarte.microservice.service.UserService;
 
@@ -18,10 +16,10 @@ import org.springframework.scheduling.annotation.Scheduled;
 
 import org.springframework.web.bind.annotation.*;
 
-import java.io.File;
 import java.sql.Date;
 
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 
@@ -34,19 +32,25 @@ import java.util.List;
 public class LibraryControleur {
     private final UserService userService;
     private final UserRepository userRepository;
+    private final BookRepository bookRepository;
     private final BookService bookService;
     private final BorrowRepository borrowRepository;
+    private final BorrowedRepository borrowedRepository;
+    private final ReservationRepository reservationRepository;
 
     private final RoleRepository roleRepository;
 
     @Autowired
-    public LibraryControleur(UserService userService, BookService bookService, @Qualifier("borrowRepository") BorrowRepository borrowRepository, @Qualifier("roleRepository") RoleRepository roleRepository, @Qualifier("userRepository") UserRepository userRepository, JavaMailSender javaMailSender) {
+    public LibraryControleur(UserService userService, BookService bookService, @Qualifier("borrowRepository") BorrowRepository borrowRepository, @Qualifier("bookRepository") BookRepository bookRepository, @Qualifier("borrowedRepository") BorrowedRepository borrowedRepository, @Qualifier("roleRepository") RoleRepository roleRepository, @Qualifier("userRepository") UserRepository userRepository, @Qualifier("reservationRepository") ReservationRepository reservationRepository, JavaMailSender javaMailSender) {
+        this.borrowedRepository = borrowedRepository;
 
         this.userRepository = userRepository;
         this.userService = userService;
         this.bookService = bookService;
         this.borrowRepository = borrowRepository;
         this.roleRepository = roleRepository;
+        this.bookRepository = bookRepository;
+        this.reservationRepository = reservationRepository;
         this.javaMailSender = javaMailSender;
     }
 
@@ -57,7 +61,7 @@ public class LibraryControleur {
 
     private final JavaMailSender javaMailSender;
 
-   @Scheduled(cron = "0-10 * * * *  ?")
+    @Scheduled(cron = "* * * * 10  ?")
     public void sendEmail() {
         List<Borrow> borrowed = borrowRepository.findAllBorrowBook();
         for (Borrow borrowedBook : borrowed) {
@@ -69,26 +73,203 @@ public class LibraryControleur {
                 msg.setSubject("Livre à rendre");
                 SimpleDateFormat dateFormat = new SimpleDateFormat("MM-dd-yyyy");
                 String date = dateFormat.format(borrowedBook.getReturnDate());
-                msg.setText("Vous deviez rendre le livre le :" +book.getTitle()+" le "+ date
+                msg.setText("Vous deviez rendre le livre le :" + book.getTitle() + " le " + date
                         + "\n Nous vous prions de retourner le livre "
-                       );
+                );
 
                 System.out.println("email sended");
                 javaMailSender.send(msg);
             }
         }
+    }
+    public List<Book_List> getBooks() {
+
+        List<Book> books = bookService.findAll();
+        List<Book_List> listBook = new ArrayList<>();
+        List<Borrow> borrowedBook = borrowRepository.findAllBorrowBook();
 
 
-/*
-        SimpleMailMessage msg = new SimpleMailMessage();
-        msg.setTo("marj12@live.fr");
 
-        msg.setSubject("Testing from Spring Boot");
-        msg.setText("Hello World \n Spring Boot Email");
-        System.out.println(msg);
+        int nbCopy = 0;
+        int nbBorrow = 0;
+        int contain = 0;
 
-        javaMailSender.send(msg);
-*/
+        for (Book bookList : books) {
+            nbBorrow = nbCopy = 0;
+            for (Book allbooks : books) {
+
+                if (bookList.getTitle().equals(allbooks.getTitle())) {
+                    nbCopy++;
+
+                    for (Borrow bookBorrowed : borrowedBook) {
+                        if ((allbooks.getIdBook() == bookBorrowed.getIdBook()) && (bookBorrowed.isLoan())) {
+                            nbBorrow++;
+                        }
+                    }
+                }
+
+
+                if (books.indexOf(allbooks) == books.size() - 1) {
+                    Book_List listedBook = new Book_List();
+                    contain = 0;
+                    listedBook.setIdBook(bookList.getIdBook());
+                    listedBook.setIdEditeur(bookList.getIdEditeur());
+                    listedBook.setIdType(bookList.getIdType());
+                    listedBook.setTitle(bookList.getTitle());
+                    listedBook.setSummary(bookList.getSummary());
+                    listedBook.setUrlImage(bookList.getUrlImage());
+                    listedBook.setIsbn(bookList.getIsbn());
+                    listedBook.setPurchaseDate(bookList.getPurchaseDate());
+                    listedBook.setPrice(bookList.getPrice());
+                    listedBook.setUpdateDate(bookList.getUpdateDate());
+                    listedBook.setCreationDate(bookList.getCreationDate());
+                    listedBook.setNbCopy(nbCopy);
+                    listedBook.setNbCopyAvailable(nbCopy - nbBorrow );
+
+                    for (Book_List boo : listBook) {
+                        if (boo.getTitle().equals(listedBook.getTitle())) {
+                            contain = 1;
+                        }
+                    }
+                    if (contain == 0) {
+                        listBook.add(listedBook);
+                    }
+                }
+            }
+        }
+
+        return listBook;
+    }
+
+    public List<Book_Reservation> reservation() {
+        System.out.println("EXEC 1");
+        List<Book_List> book = getBooks();
+        List<Borrow> borrow = getallborrowedBook();
+        System.out.println("EXEC 2");
+        List<Reservation> reservation = getAllReservation();
+        List<Book_Reservation> bookRes = new ArrayList<>();
+        System.out.println("EXEC 3");
+        for (Reservation reservations : reservation
+        ) {
+            int nbres = 0;
+            Book_Reservation res = new Book_Reservation();
+            Date dummy = new Date(1999 - 01 - 01);
+
+            int nbMax = 0;
+            int rank = 1;
+
+            for (Book_List books : book
+            ) {
+                if (reservations.getTitle().equals(books.getTitle())) {
+                    nbMax++;
+                    for (Borrow borrows : borrow
+                    ) {
+                        if (borrows.getIdBook() == books.getIdBook()) {
+                            if (dummy.compareTo(borrows.getReturnDate()) < 0) {
+                                dummy.setTime(borrows.getReturnDate().getTime());
+                            }
+                        }
+                    }
+                }
+            }
+            //rand positionner
+            for (Reservation reser : reservation
+            ) {
+                if (reservations.getTitle().equals(reser.getTitle())) {
+
+                    if (reservations.getIdUser() != reser.getIdUser()) {
+                        rank++;
+                    } else {
+                        break;
+                    }
+                }
+            }
+            //nb resa
+            for (Reservation reser : reservation
+            ) {
+                if (reservations.getTitle().equals(reser.getTitle())) {
+                    nbres++;
+                }
+            }
+
+            res.setRanking(rank);
+            res.setAvalaibleDate(dummy);
+            res.setIdUser(reservations.getIdUser());
+            res.setNbres(nbres);
+            res.setNbMaxRes(nbMax * 2);
+            res.setTitle(reservations.getTitle());
+            bookRes.add(res);
+        }
+        System.out.println("DONE");
+        return bookRes;
+    }
+
+    @Scheduled(cron = "0 0 0 * *  ?")
+    public void checkReservation() {
+        List<Book_Reservation> reservation = reservation();
+        List<Book_List> book = getAllBooks();
+        List<Borrow> borrow = getallborrowedBook();
+        for (Book_Reservation reservations : reservation
+        ) {
+            for (Book_List books : book
+            ) {
+                if (reservations.getRanking() == 1) {
+                    int indexBorrowed = borrowedRepository.findlastBorrowById(books.getIdBook());
+                    Borrowed borrowed = borrowedRepository.findBorrowedBook(indexBorrowed);
+                    LocalDate returnDate = Instant.ofEpochMilli(borrowed.getReturnDate().getTime()).atZone(ZoneId.systemDefault()).toLocalDate();
+                    LocalDate next2Day = returnDate.plus(2, ChronoUnit.DAYS);
+                    if (reservations.getTitle().equals(books.getTitle()) && books.getNbCopyAvailable() > 0 && next2Day.compareTo(LocalDate.now()) < 0) {
+                        for (Borrow borrows : borrow) {
+                            if (books.getIdBook() == borrows.getIdBook() && !borrows.isLoan()) {
+                                SimpleMailMessage msg = new SimpleMailMessage();
+                                User user = userRepository.findById(reservations.getIdUser());
+                                msg.setTo(user.getEmail());
+                                msg.setSubject("Livre disponlible");
+                                SimpleDateFormat dateFormat = new SimpleDateFormat("MM-dd-yyyy");
+
+                                System.out.println(indexBorrowed);
+                                String date = dateFormat.format(borrowed.getReturnDate());
+                                msg.setText("Le livre :" + books.getTitle() + " est disponible jusqu'au " + date
+
+                                );
+
+                                System.out.println("email sended");
+                                javaMailSender.send(msg);
+                            }
+                        }
+                    }
+                    if (reservations.getTitle().equals(books.getTitle()) && books.getNbCopyAvailable() > 0 && next2Day.compareTo(LocalDate.now()) > 0) {
+                        SimpleMailMessage msg = new SimpleMailMessage();
+                        User user = userRepository.findById(reservations.getIdUser());
+                        msg.setTo(user.getEmail());
+                        msg.setSubject("Reservation annulé");
+                        SimpleDateFormat dateFormat = new SimpleDateFormat("MM-dd-yyyy");
+
+                        System.out.println(indexBorrowed);
+                        String date = dateFormat.format(borrowed.getReturnDate());
+                        msg.setText("La réservatio, pour le livre :" + books.getTitle() + " est annulée"
+                        );
+                        System.out.println("email sended");
+                        javaMailSender.send(msg);
+                        Reservation resa = reservationRepository.findReservation(reservations.getIdUser(), reservations.getTitle());
+                        reservationRepository.delete(resa);
+                    }
+                }
+            }
+        }
+    }
+
+    @RequestMapping(value = {"/returnbook"}, method = RequestMethod.GET)
+    public void returnBook(@RequestParam("idborrow") int idborrow) {
+        Borrow borrow = borrowRepository.findBorrowedBook(idborrow);
+        Borrowed borrowed = new Borrowed();
+        Date now = Date.valueOf(LocalDate.now());
+        borrowed.setCreationDate(borrow.getCreationDate());
+        borrowed.setIdUser(borrow.getIdUser());
+        borrowed.setIdBook(borrow.getIdBook());
+        borrowed.setReturnDate(now);
+        borrowedRepository.save(borrowed);
+        borrowRepository.delete(borrow);
     }
 
     @RequestMapping(value = {"/role"}, method = RequestMethod.GET)
@@ -97,7 +278,13 @@ public class LibraryControleur {
         return roleRepository.queryRole((email));
     }
 
-    @RequestMapping(value = {"/find"}, method = RequestMethod.GET)
+    @RequestMapping(value = {"/deleteresa"}, method = RequestMethod.GET)
+    public void deleteReservations(@RequestParam("idresa") int idresa) {
+        Reservation resa = reservationRepository.findReservationById(idresa);
+        reservationRepository.delete(resa);
+    }
+
+        @RequestMapping(value = {"/find"}, method = RequestMethod.GET)
     public User findByMail(@RequestParam("email") String email) {
 
         return userService.findUserByEmail(email);
@@ -113,6 +300,37 @@ public class LibraryControleur {
 
         System.out.println("TEST" + user.getLastName() + user.getName() + user.getEmail() + user.getPassword());
         userService.saveUser(user);
+    }
+
+    @RequestMapping(value = {"/getresbytitle"}, method = RequestMethod.GET)
+    public List<Reservation> getAllReservations(@RequestParam("title") String title) {
+        return reservationRepository.findAllReservationByBook(title);
+    }
+
+    @RequestMapping(value = {"/cancel"})
+    public void cancel(@RequestParam("title") String title, @RequestParam("iduser") int idUser) {
+        Reservation reservation = reservationRepository.findReservation(idUser, title);
+        reservationRepository.delete(reservation);
+    }
+
+    @RequestMapping(value = {"/reserv"})
+    public void reserv(@RequestParam("idbook") int idBook, @RequestParam("iduser") int idUser) {
+        Reservation reservation = new Reservation();
+        reservation.setIdBook(idBook);
+        reservation.setIdUser(idUser);
+        Book book = bookService.findById(idBook);
+        reservation.setTitle(book.getTitle());
+        reservationRepository.save(reservation);
+    }
+
+    @RequestMapping(value = {"/getallreser"}, method = RequestMethod.GET)
+    public List<Reservation> getAllReservation() {
+        return reservationRepository.findAllReservation();
+    }
+
+    @RequestMapping(value = {"/getallborrow"}, method = RequestMethod.GET)
+    public List<Borrow> getallborrowedBook() {
+        return borrowRepository.findAllBorrowBook();
     }
 
     @RequestMapping(value = {"/getborrow"}, method = RequestMethod.GET)
@@ -157,10 +375,12 @@ public class LibraryControleur {
         List<Book> books = bookService.findByTitle(search);
         List<Book_List> listBook = new ArrayList<>();
         List<Borrow> borrowedBook = borrowRepository.findAllBorrowBook();
+        List<Book_Reservation> reservation = reservation();
 
         int nbCopy = 0;
         int nbBorrow = 0;
         int contain = 0;
+        int reservedBook = 0;
         for (Book bookList : books) {
             nbBorrow = nbCopy = 0;
             for (Book allbooks : books) {
@@ -173,6 +393,12 @@ public class LibraryControleur {
                             nbBorrow++;
                         }
                     }
+                }
+                for (Book_Reservation resa : reservation
+                ) {
+                        if(resa.getTitle().equals(bookList.getTitle())){
+                            reservedBook=resa.getNbres();
+                        }
                 }
                 if (books.indexOf(allbooks) == books.size() - 1) {
                     Book_List listedBook = new Book_List();
@@ -190,6 +416,7 @@ public class LibraryControleur {
                     listedBook.setCreationDate(bookList.getCreationDate());
                     listedBook.setNbCopy(nbCopy);
                     listedBook.setNbCopyAvailable(nbCopy - nbBorrow);
+
 
                     for (Book_List boo : listBook) {
                         if (boo.getTitle().equals(listedBook.getTitle())) {
@@ -209,56 +436,20 @@ public class LibraryControleur {
     @RequestMapping(value = {"/getAllBooks"})
     public List<Book_List> getAllBooks() {
 
-        List<Book> books = bookService.findAll();
-        List<Book_List> listBook = new ArrayList<>();
-        List<Borrow> borrowedBook = borrowRepository.findAllBorrowBook();
-        int nbCopy = 0;
-        int nbBorrow = 0;
-        int contain = 0;
-        for (Book bookList : books) {
-            nbBorrow = nbCopy = 0;
-            for (Book allbooks : books) {
-
-                if (bookList.getTitle().equals(allbooks.getTitle())) {
-                    nbCopy++;
-
-                    for (Borrow bookBorrowed : borrowedBook) {
-                        if ((allbooks.getIdBook() == bookBorrowed.getIdBook()) && (bookBorrowed.isLoan())) {
-                            nbBorrow++;
-                        }
-                    }
-                }
-                if (books.indexOf(allbooks) == books.size() - 1) {
-                    Book_List listedBook = new Book_List();
-                    contain = 0;
-                    listedBook.setIdBook(bookList.getIdBook());
-                    listedBook.setIdEditeur(bookList.getIdEditeur());
-                    listedBook.setIdType(bookList.getIdType());
-                    listedBook.setTitle(bookList.getTitle());
-                    listedBook.setSummary(bookList.getSummary());
-                    listedBook.setUrlImage(bookList.getUrlImage());
-                    listedBook.setIsbn(bookList.getIsbn());
-                    listedBook.setPurchaseDate(bookList.getPurchaseDate());
-                    listedBook.setPrice(bookList.getPrice());
-                    listedBook.setUpdateDate(bookList.getUpdateDate());
-                    listedBook.setCreationDate(bookList.getCreationDate());
-                    listedBook.setNbCopy(nbCopy);
-                    listedBook.setNbCopyAvailable(nbCopy - nbBorrow);
-                    System.out.println(nbBorrow + " hhhhhh");
-                    System.out.println(nbCopy + "nnnn");
-
-                    for (Book_List boo : listBook) {
-                        if (boo.getTitle().equals(listedBook.getTitle())) {
-                            contain = 1;
-                        }
-                    }
-                    if (contain == 0) {
-                        listBook.add(listedBook);
-                    }
-                }
-            }
+        List<Book_List> listBook = getBooks();
+        for (Book_List books : listBook
+             ) {
+            System.out.println("GET AL BOOK");
+            System.out.println(books.getTitle());
+            System.out.println(books.getIdBook());
         }
 
         return listBook;
     }
+    @RequestMapping(value = {"/getBooks"})
+    public List<Book> getBook() {
+        List<Book> listBook = bookRepository.findAll();
+        return listBook;
+    }
+
 }
