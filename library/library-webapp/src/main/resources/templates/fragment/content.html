@@ -191,7 +191,7 @@
 
                                 <p class="card-text hide" th:text="${books.getSummary()}">
                                 </p>
-                                <td th:if="${!borrows.isExtended()}">
+                                <td th:if="${!borrows.isExtended()} and ${now.compareTo(borrows.getReturnDate())}<0">
                                     <form method="POST" th:action="@{/borrowed/(idborrow=${borrows.getIdBorrow()})}">
                                         <button type="submit" name="submit" value="value"
                                                 class="btn btn-success">Ralonger
