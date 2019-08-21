@@ -12,6 +12,28 @@ import java.util.Date;
 @Getter
 @Setter
 public class Borrow {
+
+    public Borrow(int idBook, int idUser, boolean isLoan, Date creationDate, Date returnDate, boolean isExtended) {
+        this.idBook = idBook;
+        this.idUser = idUser;
+        this.isLoan = isLoan;
+        this.creationDate = creationDate;
+        this.returnDate = returnDate;
+        this.isExtended = isExtended;
+    }
+    public Borrow(int idBorrow ,int idBook, int idUser, boolean isLoan, Date creationDate, Date returnDate, boolean isExtended) {
+        this.idBorrow = idBorrow;
+        this.idBook = idBook;
+        this.idUser = idUser;
+        this.isLoan = isLoan;
+        this.creationDate = creationDate;
+        this.returnDate = returnDate;
+        this.isExtended = isExtended;
+    }
+
+    public Borrow() {
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id_borrow")

@@ -29,7 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @RestController
-public class LibraryControleur {
+public class LibraryController {
     private final UserService userService;
     private final UserRepository userRepository;
     private final BookRepository bookRepository;
@@ -41,7 +41,7 @@ public class LibraryControleur {
     private final RoleRepository roleRepository;
 
     @Autowired
-    public LibraryControleur(UserService userService, BookService bookService, @Qualifier("borrowRepository") BorrowRepository borrowRepository, @Qualifier("bookRepository") BookRepository bookRepository, @Qualifier("borrowedRepository") BorrowedRepository borrowedRepository, @Qualifier("roleRepository") RoleRepository roleRepository, @Qualifier("userRepository") UserRepository userRepository, @Qualifier("reservationRepository") ReservationRepository reservationRepository, JavaMailSender javaMailSender) {
+    public LibraryController(UserService userService, BookService bookService, @Qualifier("borrowRepository") BorrowRepository borrowRepository, @Qualifier("bookRepository") BookRepository bookRepository, @Qualifier("borrowedRepository") BorrowedRepository borrowedRepository, @Qualifier("roleRepository") RoleRepository roleRepository, @Qualifier("userRepository") UserRepository userRepository, @Qualifier("reservationRepository") ReservationRepository reservationRepository, JavaMailSender javaMailSender) {
         this.borrowedRepository = borrowedRepository;
 
         this.userRepository = userRepository;
@@ -60,6 +60,10 @@ public class LibraryControleur {
     }
 
     private final JavaMailSender javaMailSender;
+
+
+
+
 
     @Scheduled(cron = "* * * * 10  ?")
     public void sendEmail() {
@@ -82,13 +86,12 @@ public class LibraryControleur {
             }
         }
     }
+
     public List<Book_List> getBooks() {
 
         List<Book> books = bookService.findAll();
         List<Book_List> listBook = new ArrayList<>();
         List<Borrow> borrowedBook = borrowRepository.findAllBorrowBook();
-
-
 
         int nbCopy = 0;
         int nbBorrow = 0;
@@ -108,7 +111,6 @@ public class LibraryControleur {
                     }
                 }
 
-
                 if (books.indexOf(allbooks) == books.size() - 1) {
                     Book_List listedBook = new Book_List();
                     contain = 0;
@@ -124,7 +126,7 @@ public class LibraryControleur {
                     listedBook.setUpdateDate(bookList.getUpdateDate());
                     listedBook.setCreationDate(bookList.getCreationDate());
                     listedBook.setNbCopy(nbCopy);
-                    listedBook.setNbCopyAvailable(nbCopy - nbBorrow );
+                    listedBook.setNbCopyAvailable(nbCopy - nbBorrow);
 
                     for (Book_List boo : listBook) {
                         if (boo.getTitle().equals(listedBook.getTitle())) {
@@ -142,13 +144,11 @@ public class LibraryControleur {
     }
 
     public List<Book_Reservation> reservation() {
-        System.out.println("EXEC 1");
+
         List<Book_List> book = getBooks();
         List<Borrow> borrow = getallborrowedBook();
-        System.out.println("EXEC 2");
         List<Reservation> reservation = getAllReservation();
         List<Book_Reservation> bookRes = new ArrayList<>();
-        System.out.println("EXEC 3");
         for (Reservation reservations : reservation
         ) {
             int nbres = 0;
@@ -176,19 +176,12 @@ public class LibraryControleur {
             for (Reservation reser : reservation
             ) {
                 if (reservations.getTitle().equals(reser.getTitle())) {
-
+                    nbres++;
                     if (reservations.getIdUser() != reser.getIdUser()) {
                         rank++;
                     } else {
                         break;
                     }
-                }
-            }
-            //nb resa
-            for (Reservation reser : reservation
-            ) {
-                if (reservations.getTitle().equals(reser.getTitle())) {
-                    nbres++;
                 }
             }
 
@@ -200,7 +193,7 @@ public class LibraryControleur {
             res.setTitle(reservations.getTitle());
             bookRes.add(res);
         }
-        System.out.println("DONE");
+
         return bookRes;
     }
 
@@ -214,7 +207,7 @@ public class LibraryControleur {
             for (Book_List books : book
             ) {
                 if (reservations.getRanking() == 1) {
-                    int indexBorrowed = borrowedRepository.findlastBorrowById(books.getIdBook());
+                    int indexBorrowed = borrowedRepository.findFirstBorrowById(books.getIdBook());
                     Borrowed borrowed = borrowedRepository.findBorrowedBook(indexBorrowed);
                     LocalDate returnDate = Instant.ofEpochMilli(borrowed.getReturnDate().getTime()).atZone(ZoneId.systemDefault()).toLocalDate();
                     LocalDate next2Day = returnDate.plus(2, ChronoUnit.DAYS);
@@ -245,8 +238,7 @@ public class LibraryControleur {
                         msg.setSubject("Reservation annulé");
                         SimpleDateFormat dateFormat = new SimpleDateFormat("MM-dd-yyyy");
 
-                        System.out.println(indexBorrowed);
-                        String date = dateFormat.format(borrowed.getReturnDate());
+
                         msg.setText("La réservatio, pour le livre :" + books.getTitle() + " est annulée"
                         );
                         System.out.println("email sended");
@@ -284,7 +276,7 @@ public class LibraryControleur {
         reservationRepository.delete(resa);
     }
 
-        @RequestMapping(value = {"/find"}, method = RequestMethod.GET)
+    @RequestMapping(value = {"/find"}, method = RequestMethod.GET)
     public User findByMail(@RequestParam("email") String email) {
 
         return userService.findUserByEmail(email);
@@ -298,7 +290,6 @@ public class LibraryControleur {
         user.setEmail(email);
         user.setPassword(password);
 
-        System.out.println("TEST" + user.getLastName() + user.getName() + user.getEmail() + user.getPassword());
         userService.saveUser(user);
     }
 
@@ -396,9 +387,9 @@ public class LibraryControleur {
                 }
                 for (Book_Reservation resa : reservation
                 ) {
-                        if(resa.getTitle().equals(bookList.getTitle())){
-                            reservedBook=resa.getNbres();
-                        }
+                    if (resa.getTitle().equals(bookList.getTitle())) {
+                        reservedBook = resa.getNbres();
+                    }
                 }
                 if (books.indexOf(allbooks) == books.size() - 1) {
                     Book_List listedBook = new Book_List();
@@ -416,7 +407,6 @@ public class LibraryControleur {
                     listedBook.setCreationDate(bookList.getCreationDate());
                     listedBook.setNbCopy(nbCopy);
                     listedBook.setNbCopyAvailable(nbCopy - nbBorrow);
-
 
                     for (Book_List boo : listBook) {
                         if (boo.getTitle().equals(listedBook.getTitle())) {
@@ -438,7 +428,7 @@ public class LibraryControleur {
 
         List<Book_List> listBook = getBooks();
         for (Book_List books : listBook
-             ) {
+        ) {
             System.out.println("GET AL BOOK");
             System.out.println(books.getTitle());
             System.out.println(books.getIdBook());
@@ -446,10 +436,10 @@ public class LibraryControleur {
 
         return listBook;
     }
+
     @RequestMapping(value = {"/getBooks"})
     public List<Book> getBook() {
         List<Book> listBook = bookRepository.findAll();
         return listBook;
     }
-
 }

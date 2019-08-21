@@ -9,6 +9,24 @@ import java.util.Date;
 @Getter
 @Setter
 public class Book_List {
+    public Book_List(int idBook, int idType, int idEditeur, String title, String summary, String urlImage, String isbn, Date purchaseDate, int price, Date creationDate, Date updateDate, int nbCopy, int nbCopyAvailable) {
+        this.idBook = idBook;
+        this.idType = idType;
+        this.idEditeur = idEditeur;
+        this.title = title;
+        this.summary = summary;
+        this.urlImage = urlImage;
+        this.isbn = isbn;
+        this.purchaseDate = purchaseDate;
+        this.price = price;
+        this.creationDate = creationDate;
+        this.updateDate = updateDate;
+        this.nbCopy = nbCopy;
+        this.nbCopyAvailable = nbCopyAvailable;
+    }
+
+    public Book_List() {
+    }
 
     private int idBook;
 

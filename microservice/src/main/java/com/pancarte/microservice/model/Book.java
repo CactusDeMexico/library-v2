@@ -13,6 +13,23 @@ import java.util.Set;
 @Getter
 @Setter
 public class Book {
+    public Book(int idType, int idEditeur, String title, String summary, String urlImage, String isbn, Date purchaseDate, int price, Date creationDate, Date updateDate) {
+        this.idType = idType;
+        this.idEditeur = idEditeur;
+        this.title = title;
+        this.summary = summary;
+        this.urlImage = urlImage;
+        this.isbn = isbn;
+        this.purchaseDate = purchaseDate;
+        this.price = price;
+        this.creationDate = creationDate;
+        this.updateDate = updateDate;
+
+    }
+
+    public Book() {
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id_book")
