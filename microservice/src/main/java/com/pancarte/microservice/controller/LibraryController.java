@@ -4,6 +4,8 @@ import com.pancarte.microservice.model.*;
 
 import com.pancarte.microservice.repository.*;
 import com.pancarte.microservice.service.BookService;
+
+import com.pancarte.microservice.service.BorrowedService;
 import com.pancarte.microservice.service.UserService;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,20 +38,22 @@ public class LibraryController {
     private final BookService bookService;
     private final BorrowRepository borrowRepository;
     private final BorrowedRepository borrowedRepository;
+    private final BorrowedService borrowedService;
     private final ReservationRepository reservationRepository;
 
     private final RoleRepository roleRepository;
 
     @Autowired
-    public LibraryController(UserService userService, BookService bookService, @Qualifier("borrowRepository") BorrowRepository borrowRepository, @Qualifier("bookRepository") BookRepository bookRepository, @Qualifier("borrowedRepository") BorrowedRepository borrowedRepository, @Qualifier("roleRepository") RoleRepository roleRepository, @Qualifier("userRepository") UserRepository userRepository, @Qualifier("reservationRepository") ReservationRepository reservationRepository, JavaMailSender javaMailSender) {
+    public LibraryController(UserService userService, BookService bookService, @Qualifier("borrowRepository") BorrowRepository borrowRepository, @Qualifier("bookRepository") BookRepository bookRepository, @Qualifier("borrowedRepository") BorrowedRepository borrowedRepository, BorrowedService borrowedService, @Qualifier("roleRepository") RoleRepository roleRepository, @Qualifier("userRepository") UserRepository userRepository, @Qualifier("reservationRepository") ReservationRepository reservationRepository, JavaMailSender javaMailSender) {
         this.borrowedRepository = borrowedRepository;
-
         this.userRepository = userRepository;
         this.userService = userService;
         this.bookService = bookService;
         this.borrowRepository = borrowRepository;
         this.roleRepository = roleRepository;
         this.bookRepository = bookRepository;
+        this.borrowedService = borrowedService;
+
         this.reservationRepository = reservationRepository;
         this.javaMailSender = javaMailSender;
     }
@@ -197,7 +201,7 @@ public class LibraryController {
         return bookRes;
     }
 
-    @Scheduled(cron = "0 0 0 * *  ?")
+    @Scheduled(cron = "0 0 1-1 * *  ?")
     public void checkReservation() {
         List<Book_Reservation> reservation = reservation();
         List<Book_List> book = getAllBooks();
@@ -206,9 +210,18 @@ public class LibraryController {
         ) {
             for (Book_List books : book
             ) {
-                if (reservations.getRanking() == 1) {
-                    int indexBorrowed = borrowedRepository.findFirstBorrowById(books.getIdBook());
-                    Borrowed borrowed = borrowedRepository.findBorrowedBook(indexBorrowed);
+                boolean bookAvailable=true;
+                for(Borrow borrows :borrow){
+                    if(borrows.getIdBook()==books.getIdBook()){
+                        bookAvailable=false;
+                    }
+                }
+                if (reservations.getRanking() == 1 && reservations.getTitle().equals(books.getTitle()) && bookAvailable ) {
+//                    int x =borrowedRepository.findFirstBorrowById(books.getIdBook());
+                    System.out.println(books.getIdBook()+" idbook");
+                   int borrowedBook = borrowedService.findFirstBorrowById(books.getIdBook());
+                    System.out.println(borrowedBook+"____________");
+                    Borrowed borrowed = borrowedRepository.findBorrowedBook(borrowedBook);
                     LocalDate returnDate = Instant.ofEpochMilli(borrowed.getReturnDate().getTime()).atZone(ZoneId.systemDefault()).toLocalDate();
                     LocalDate next2Day = returnDate.plus(2, ChronoUnit.DAYS);
                     if (reservations.getTitle().equals(books.getTitle()) && books.getNbCopyAvailable() > 0 && next2Day.compareTo(LocalDate.now()) < 0) {
@@ -220,7 +233,7 @@ public class LibraryController {
                                 msg.setSubject("Livre disponlible");
                                 SimpleDateFormat dateFormat = new SimpleDateFormat("MM-dd-yyyy");
 
-                                System.out.println(indexBorrowed);
+                                System.out.println(borrowedBook);
                                 String date = dateFormat.format(borrowed.getReturnDate());
                                 msg.setText("Le livre :" + books.getTitle() + " est disponible jusqu'au " + date
 
