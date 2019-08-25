@@ -45,10 +45,10 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.authorizeRequests()
-                .antMatchers("/").permitAll()
+                .antMatchers("/**").permitAll()
 
                 .antMatchers("/search/**").permitAll()
-                .antMatchers("/index").permitAll()
+                .antMatchers("/index/**").permitAll()
                 .antMatchers("/login").permitAll()
                 .antMatchers("/signup").permitAll()
                 .antMatchers("/test").anonymous()
@@ -57,14 +57,14 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .antMatchers("/borrowed").hasAuthority("ADMIN")
                 .antMatchers("/reserv").hasAuthority("ADMIN")
                 .antMatchers("/returnbook").hasAuthority("ADMIN")
-.antMatchers("/getBooks").hasAuthority("ADMIN")
+.antMatchers("/getBooks").permitAll()
 
                 .antMatchers("/loggedhome").hasAuthority("ADMIN").anyRequest()
 
                 .authenticated().and().csrf().disable()
 
                 .formLogin().loginPage("/login").failureUrl("/login?error=true")
-                .defaultSuccessUrl("/index")
+                //.defaultSuccessUrl("/index")
                 .defaultSuccessUrl("/loggedhome")
                 .usernameParameter("email")
                 .passwordParameter("password")
