@@ -2,7 +2,14 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/library/library.iml" filepath="$PROJECT_DIR$/library/library.iml" />
+      <module fileurl="file://$PROJECT_DIR$/library/library-batch/library-batch.iml" filepath="$PROJECT_DIR$/library/library-batch/library-batch.iml" />
+      <module fileurl="file://$PROJECT_DIR$/library/library-business/library-business.iml" filepath="$PROJECT_DIR$/library/library-business/library-business.iml" />
+      <module fileurl="file://$PROJECT_DIR$/library/library-consumer/library-consumer.iml" filepath="$PROJECT_DIR$/library/library-consumer/library-consumer.iml" />
+      <module fileurl="file://$PROJECT_DIR$/library/library-model/library-model.iml" filepath="$PROJECT_DIR$/library/library-model/library-model.iml" />
+      <module fileurl="file://$PROJECT_DIR$/library/library-webapp/library-webapp.iml" filepath="$PROJECT_DIR$/library/library-webapp/library-webapp.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/library_rest.iml" filepath="$PROJECT_DIR$/.idea/library_rest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/microservice/microservice.iml" filepath="$PROJECT_DIR$/microservice/microservice.iml" />
     </modules>
   </component>
 </project>

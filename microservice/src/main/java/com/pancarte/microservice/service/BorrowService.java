@@ -4,16 +4,17 @@ import com.pancarte.microservice.model.Borrow;
 import com.pancarte.microservice.model.Borrowed;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 public interface BorrowService {
 
-    int findFirstBorrowById(@Param("id_book") int id_book);
 
-    List<Borrow> findAllBorrowBook();
 
-    Borrow findBorrowedBook(@Param("id_borrow") int id_borrow);
+   public List<Borrow> findAllBorrowBook();
 
-    List<Borrow> findBorrowedBookByIUser(@Param("id_user") int id_user);
+    public  Borrow findBorrowedBook(@Param("id_borrow") int id_borrow);
+
+    public List<Borrow> findBorrowedBookByIUser(@Param("id_user") int id_user);
 }
