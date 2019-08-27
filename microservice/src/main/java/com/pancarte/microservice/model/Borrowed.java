@@ -12,6 +12,23 @@ import java.util.Date;
 @Getter
 @Setter
 public class Borrowed {
+    public Borrowed(int idBook, int idUser, Date creationDate, Date returnDate) {
+        this.idBook = idBook;
+        this.idUser = idUser;
+        this.creationDate = creationDate;
+        this.returnDate = returnDate;
+    }
+    public Borrowed(int idBorrowed,int idBook, int idUser, Date creationDate, Date returnDate) {
+        this.idBorrowed =idBorrowed;
+        this.idBook = idBook;
+        this.idUser = idUser;
+        this.creationDate = creationDate;
+        this.returnDate = returnDate;
+    }
+    public Borrowed() {
+
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id_borrowed")

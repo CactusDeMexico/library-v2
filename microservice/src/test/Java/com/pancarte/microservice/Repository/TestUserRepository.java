@@ -62,8 +62,7 @@ public class TestUserRepository {
     @Test
     public void findUserByIDWrongId() {
         int id = 2;
-        List<User> userList = new ArrayList<>();
-        User userEmpty = new User();
+     ;
         Mockito.when(userRepository.findById(id)).thenReturn(null);
         assertNull(userService.findById(id));
     }

@@ -22,7 +22,7 @@ public class BorrowedServiceImpl implements BorrowedService {
     }
 
     @Override
-    public int findFirstBorrowById(@Param("id_book") int id_book) {
+    public Integer findFirstBorrowById(@Param("id_book") int id_book) {
         return borrowedRepository.findFirstBorrowById(id_book);
     }
 
