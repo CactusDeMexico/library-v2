@@ -23,7 +23,7 @@ public class BorrowServiceImpl implements BorrowService {
         return borrowRepository.findBorrowedBook(id_borrow);
     }
 
-    ;
+
 
     public List<Borrow> findBorrowedBookByIUser(@Param("id_user") int id_user){
         return borrowRepository.findBorrowedBookByIUser(id_user);
