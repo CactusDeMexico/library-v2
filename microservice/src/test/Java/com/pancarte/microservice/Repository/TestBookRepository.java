@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static junit.framework.TestCase.assertNull;
 import static org.junit.Assert.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -66,8 +67,8 @@ public class TestBookRepository {
 
     @Before
     public void setUp() {
-        Book book = new Book(1, 1, "java", " résumer", "url", "dgd5", date1, 25, date2, date2);
-        Book book2 = new Book(1, 1, "angular", " résumer", "url", "dgd5", date1, 25, date2, date2);
+        Book book = new Book(1,1, 1, "java", " résumer", "url", "dgd5", date1, 25, date2, date2);
+        Book book2 = new Book(2,1, 1, "angular", " résumer", "url", "dgd5", date1, 25, date2, date2);
         Book book3=null;
 
     }
@@ -121,10 +122,15 @@ public class TestBookRepository {
     }
     @Test
     public void testGetBookById() {
-        String title = "1";
-        Mockito.when(bookRepository.findByTitle(title)).thenReturn(
-                Stream.of(new Book(1, 1, "java", " résumer", "url", "dgd5", date1, 25, date2, date2)).collect(Collectors.toList()));
-        assertEquals(1, book.getIdBook()==1);
+       int id = 1;
+
+        Mockito.when(bookRepository.findById(id)).thenReturn(book);
+        assertEquals(book, bookService.findById(id));
+    } @Test
+    public void testGetBookByIdWrongId() {
+       int id = 1;
+        Mockito.when(bookRepository.findById(id)).thenReturn(null);
+        assertNull(bookService.findById(id));
     }
 }
 

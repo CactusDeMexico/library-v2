@@ -25,6 +25,19 @@ public class Book {
         this.creationDate = creationDate;
         this.updateDate = updateDate;
 
+    }  public Book(int idBook,int idType, int idEditeur, String title, String summary, String urlImage, String isbn, Date purchaseDate, int price, Date creationDate, Date updateDate) {
+       this.idBook =idBook;
+        this.idType = idType;
+        this.idEditeur = idEditeur;
+        this.title = title;
+        this.summary = summary;
+        this.urlImage = urlImage;
+        this.isbn = isbn;
+        this.purchaseDate = purchaseDate;
+        this.price = price;
+        this.creationDate = creationDate;
+        this.updateDate = updateDate;
+
     }
 
     public Book() {

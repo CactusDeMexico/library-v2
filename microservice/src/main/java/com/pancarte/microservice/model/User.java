@@ -13,10 +13,36 @@ import java.util.Set;
 @Getter
 @Setter
 public class User {
+    public User(String name, String lastName, String email, String password, int active, Date creationDate, Date updateDate, Set<Role> roles) {
+        this.name = name;
+        this.lastName = lastName;
+        this.email = email;
+        this.password = password;
+        this.active = active;
+        this.creationDate = creationDate;
+        this.updateDate = updateDate;
+        this.roles = roles;
+    }    public User(int id,String name, String lastName, String email, String password, int active, Date creationDate, Date updateDate, Set<Role> roles) {
+        this.id=id;
+        this.name = name;
+        this.lastName = lastName;
+        this.email = email;
+        this.password = password;
+        this.active = active;
+        this.creationDate = creationDate;
+        this.updateDate = updateDate;
+        this.roles = roles;
+    }
+
+    public User() {
+
+    }
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id_user")
     private int id;
+
+
 
     @Column(name = "first_name")
     private String name;

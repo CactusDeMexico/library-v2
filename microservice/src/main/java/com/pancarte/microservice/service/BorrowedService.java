@@ -10,7 +10,7 @@ public interface BorrowedService {
 
     public List<Borrowed> findAllBorrowBook();
 
-    public int findFirstBorrowById(@Param("id_book") int id_book);
+    public Integer findFirstBorrowById(@Param("id_book") int id_book);
 
     public Borrowed findBorrowedBook(@Param("id_borrowed") int id_borrowed);
 }

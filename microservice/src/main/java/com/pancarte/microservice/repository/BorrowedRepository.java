@@ -17,7 +17,7 @@ public interface BorrowedRepository extends JpaRepository<Borrowed, Long> {
     List<Borrowed> findAllBorrowBook();
 
     @Query(value = "SELECT MIN(u.id_borrowed) FROM borrowed u WHERE u.id_book=:id_book", nativeQuery = true)
-    int findFirstBorrowById(@Param("id_book") int id_book);
+   Integer findFirstBorrowById(@Param("id_book") int id_book);
 
     @Query(value = "SELECT * FROM borrowed u WHERE u.id_borrowed=:id_borrowed", nativeQuery = true)
     Borrowed findBorrowedBook(@Param("id_borrowed") int id_borrowed);
