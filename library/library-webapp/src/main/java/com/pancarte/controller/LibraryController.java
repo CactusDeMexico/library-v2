@@ -143,7 +143,7 @@ public class LibraryController {
         return idBorrowedBook;
     }
 
-     List<Book_Reservation> reservation() throws ParseException {
+    List<Book_Reservation> reservation() throws ParseException {
         List<Book> book = Library.getBook();
         List<Borrow> borrow = Library.getallborrowedBook();
         List<Reservation> reservation = Library.getAllReservation();
@@ -155,14 +155,13 @@ public class LibraryController {
             java.util.Date dummy = format.parse("01-01-2000");
             java.util.Date dummy2 = format.parse("01-01-2000");
 
-
             int nbres = 0;
             Book_Reservation res = new Book_Reservation();
             Date now = Date.valueOf(LocalDate.now());
             LocalDate init = Instant.ofEpochMilli(now.getTime()).atZone(ZoneId.systemDefault()).toLocalDate();
             LocalDate next2Day = init.minus(1, ChronoUnit.YEARS);
 
-            System.out.println(dummy + "            oooooooooooooo " + dummy2);
+
             int nbMax = 0;
             int rank = 1;
 
@@ -177,7 +176,7 @@ public class LibraryController {
 
                         if (borrows.getIdBook() == books.getIdBook()) {
 
-                            System.out.println(dummy.compareTo(borrows.getReturnDate()) < 0);
+
                             if (dummy.compareTo(borrows.getReturnDate()) < 0) {
                                 dummy.setTime(borrows.getReturnDate().getTime());
                                 dummy.setTime(borrows.getReturnDate().getTime());
@@ -205,21 +204,11 @@ public class LibraryController {
                     nbres++;
                 }
             }
-            if (dummy.compareTo(dummy2) == 0) {
-                System.out.println("TRUE" +
-                        "SSFG");
-            }
-            System.out.println("VVVVVVVVVVVVVVVVVVVVVV");
-            System.out.println(rank);
-            System.out.println(dummy);
-            System.out.println(reservations.getIdUser());
-            System.out.println(nbres);
-            System.out.println(nbMax * 2);
-            System.out.println(reservations.getTitle());
-            System.out.println("VVVVVVVVVVVVVVVVVVVVVV");
+
+
             res.setRanking(rank);
             res.setAvalaibleDate(dummy);
-            System.out.println("DUMMY DUMMY" + dummy);
+
             res.setIdUser(reservations.getIdUser());
             res.setNbres(nbres);
             res.setNbMaxRes(nbMax * 2);
@@ -229,8 +218,9 @@ public class LibraryController {
 
         return bookRes;
     }
+
     List<Book_Reservation> resaNoDuplicate() throws ParseException {
-        List<Book_Reservation> bookRes =reservation();
+        List<Book_Reservation> bookRes = reservation();
         Book_Reservation reservationBook = new Book_Reservation();
         List<Book_Reservation> resaNoDuplicate = new ArrayList<>();
         String reservationTitle = "";
@@ -241,7 +231,6 @@ public class LibraryController {
                 resaNoDuplicate.add(reservationBook);
             }
             reservationTitle = reservationTitle + reservations.getTitle();
-
         }
         return resaNoDuplicate;
     }
@@ -256,8 +245,7 @@ public class LibraryController {
         if (search == null) {
             search = "0";
             book = Library.getAllBooks();
-        }
-        else{
+        } else {
             String cap = search.substring(0, 1).toUpperCase() + search.substring(1);
             String caps = search.toUpperCase();
             book = Library.searchBooks(search);
@@ -293,7 +281,7 @@ public class LibraryController {
                 if (reservations.getIdUser() == user.getId()) {
                     for (Book_List books : book
                     ) {
-                        System.out.println(books.getTitle());
+
                         if (books.getIdBook() == reservations.getIdBook()) {
                             reservedBook += books.getTitle() + ",";
                         }
@@ -322,11 +310,10 @@ public class LibraryController {
                 resaNoDuplicate.add(reservationBook);
             }
             reservationTitle = reservationTitle + reservations.getTitle();
-            System.out.println(reservationTitle + "                0");
-            System.out.println(reservations.getTitle() + " " + reservations.getAvalaibleDate());
+
         }
-        System.out.println(book.size());
-        bookRes=resaNoDuplicate();
+
+        bookRes = resaNoDuplicate();
         model.addObject("resaNoDuplicate", resaNoDuplicate);
         model.addObject("reservationTitle", reservationTitle);
         model.addObject("reservation", reservation);
@@ -480,14 +467,14 @@ public class LibraryController {
                 resaString = resaString + reservations.getTitle();
             }
         }
-        String listBook="";
+        String listBook = "";
         List<Book_List> bookListNoDuplicate = new ArrayList<>();
         for (Book_List book_lists : booklist) {
 
-            if (!listBook.contains(book_lists.getTitle()) ) {
+            if (!listBook.contains(book_lists.getTitle())) {
                 bookListNoDuplicate.add(book_lists);
             }
-            listBook=listBook+book_lists.getTitle();
+            listBook = listBook + book_lists.getTitle();
         }
         List<Book_Reservation> bookRes = reservation();
 
@@ -501,8 +488,7 @@ public class LibraryController {
                 resaNoDuplicate.add(reservationBook);
             }
             reservationTitle = reservationTitle + reservations.getTitle();
-            System.out.println(reservationTitle + "                0");
-            System.out.println(reservations.getTitle() + " " + reservations.getAvalaibleDate());
+
         }
         String idBorrows = idBookborrow();
         model.addObject("borrowIdBook", idBorrows);
@@ -547,11 +533,17 @@ public class LibraryController {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         User user = Library.findUserByEmail(auth.getName());
         List<Reservation> reservation = Library.getAllReservation();
-        for (Reservation reservations : reservation) {
-            if (reservations.getIdUser() == user.getId() && reservations.getIdBook() == idBook) {
-                Library.deleteReservations(reservations.getIdservation());
+        List<Book> books = Library.getBook();
+        for (Book book : books) {
+            if (book.getIdBook() == idBook) {
+                for (Reservation reservations : reservation) {
+                    if (reservations.getIdUser() == user.getId() && reservations.getTitle().contains(book.getTitle())) {
+                        Library.deleteReservations(reservations.getIdreservation());
+                    }
+                }
             }
         }
+
         Library.borrow(idBook, user.getId());
 
         return "redirect:/loggedhome";

@@ -178,22 +178,12 @@
                                     <div th:break></div>
                                 </div>
 
-                                <td th:if="${bookRes.size()==0} and ${!userName.equals('0')}
-                                    and ${books.getNbCopyAvailable()<1}
-                                    and ${!borrowedBookByTitle.contains(books.getTitle())}">
 
-                                    <form method="POST" th:action="@{/reserv/(idbook=${books.getIdBook()})}">
-                                        <button type="submit" name="submit" value="value"
-                                                th:href="@{/reserv/(idbook=${books.getIdBook()})}"
-                                                class="btn btn-success">Reserver
-                                        </button>
-
-                                    </form>
-                                </td>
                             </div>
                         </div>
                         <!-- _______________________FIN SPOT_________________________ -->
                     </div>
+                    <br> <br>
                 </div>
                 </br>
             </div>
@@ -294,29 +284,29 @@
                                 <p class="card-text hide" th:text="${books.getSummary()}">
                                 </p>
 
-                                    <div
-                                            th:if="${books.getNbCopyAvailable()}>0
+                                <div
+                                        th:if="${books.getNbCopyAvailable()}>0
                                                     and ${reservations.getRanking()==1}
                                                     and ${books.getIdBook()}
                                                     and ${!borrowIdBook.contains(#strings.toString(books.getIdBook()))}
                                                     and ${books.getTitle().equals(reservations.getTitle())}
                                                    ">
-                                        <h6> l'ouvrage est disponible </h6>
-                                        <form method="POST"
-                                              th:action="@{/borrow/(idbook=${books.getIdBook()})}">
-                                            <button type="submit" name="submit" value="value"
-                                                    th:href="@{/borrow/(idbook=${books.getIdBook()})}"
-                                                    class="btn btn-success">Emprunter ex2
-                                            </button>
-                                        </form>
-                                    </div>
-                                    <td th:break></td>
+                                    <h6> l'ouvrage est disponible </h6>
+                                    <form method="POST"
+                                          th:action="@{/borrow/(idbook=${books.getIdBook()})}">
+                                        <button type="submit" name="submit" value="value"
+                                                th:href="@{/borrow/(idbook=${books.getIdBook()})}"
+                                                class="btn btn-success">Emprunter
+                                        </button>
+                                    </form>
+                                </div>
+                                <td th:break></td>
 
 
                                 <form method="POST" th:action="@{/cancel/(title=${books.getTitle()})}">
                                     <button type="submit" name="submit" value="value"
                                             th:href="@{/cancel/(title=${books.getTitle()})}"
-                                            class="btn btn-success">Annuler réservation ex1
+                                            class="btn btn-success">Annuler réservation
                                     </button>
 
                                 </form>

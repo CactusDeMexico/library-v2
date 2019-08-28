@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.sql.Date;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -64,10 +65,6 @@ public class LibraryController {
     }
 
     private final JavaMailSender javaMailSender;
-
-
-
-
 
     @Scheduled(cron = "* * * * 10  ?")
     public void sendEmail() {
@@ -201,64 +198,68 @@ public class LibraryController {
         return bookRes;
     }
 
-    @Scheduled(cron = "0 0 1-1 * *  ?")
+    @Scheduled(cron = "0 0 0 * *  ?")
     public void checkReservation() {
+
         List<Book_Reservation> reservation = reservation();
         List<Book_List> book = getAllBooks();
         List<Borrow> borrow = getallborrowedBook();
+        LocalDate localDate = LocalDate.now();
+        Date now = java.sql.Date.valueOf(localDate);
         for (Book_Reservation reservations : reservation
         ) {
             for (Book_List books : book
             ) {
-                boolean bookAvailable=true;
-                for(Borrow borrows :borrow){
-                    if(borrows.getIdBook()==books.getIdBook()){
-                        bookAvailable=false;
+                boolean bookAvailable = true;
+                for (Borrow borrows : borrow) {
+                    if (borrows.getIdBook() == books.getIdBook()) {
+                        bookAvailable = false;
                     }
                 }
-                if (reservations.getRanking() == 1 && reservations.getTitle().equals(books.getTitle()) && bookAvailable ) {
-//                    int x =borrowedRepository.findFirstBorrowById(books.getIdBook());
-                    System.out.println(books.getIdBook()+" idbook");
-                   int borrowedBook = borrowedService.findFirstBorrowById(books.getIdBook());
-                    System.out.println(borrowedBook+"____________");
+                Reservation reserv = reservationRepository.findReservation(reservations.getIdUser(), reservations.getTitle());
+
+
+                if (reservations.getRanking() == 1 && reservations.getTitle().equals(books.getTitle()) && bookAvailable && !reserv.isEmailSended()) {
+//
+                    int borrowedBook = borrowedService.findFirstBorrowById(books.getIdBook());
+
                     Borrowed borrowed = borrowedRepository.findBorrowedBook(borrowedBook);
-                    LocalDate returnDate = Instant.ofEpochMilli(borrowed.getReturnDate().getTime()).atZone(ZoneId.systemDefault()).toLocalDate();
+                    LocalDate returnDate = Instant.ofEpochMilli(now.getTime()).atZone(ZoneId.systemDefault()).toLocalDate();
                     LocalDate next2Day = returnDate.plus(2, ChronoUnit.DAYS);
-                    if (reservations.getTitle().equals(books.getTitle()) && books.getNbCopyAvailable() > 0 && next2Day.compareTo(LocalDate.now()) < 0) {
-                        for (Borrow borrows : borrow) {
-                            if (books.getIdBook() == borrows.getIdBook() && !borrows.isLoan()) {
-                                SimpleMailMessage msg = new SimpleMailMessage();
-                                User user = userRepository.findById(reservations.getIdUser());
-                                msg.setTo(user.getEmail());
-                                msg.setSubject("Livre disponlible");
-                                SimpleDateFormat dateFormat = new SimpleDateFormat("MM-dd-yyyy");
-
-                                System.out.println(borrowedBook);
-                                String date = dateFormat.format(borrowed.getReturnDate());
-                                msg.setText("Le livre :" + books.getTitle() + " est disponible jusqu'au " + date
-
-                                );
-
-                                System.out.println("email sended");
-                                javaMailSender.send(msg);
-                            }
-                        }
-                    }
-                    if (reservations.getTitle().equals(books.getTitle()) && books.getNbCopyAvailable() > 0 && next2Day.compareTo(LocalDate.now()) > 0) {
-                        SimpleMailMessage msg = new SimpleMailMessage();
-                        User user = userRepository.findById(reservations.getIdUser());
-                        msg.setTo(user.getEmail());
-                        msg.setSubject("Reservation annulé");
-                        SimpleDateFormat dateFormat = new SimpleDateFormat("MM-dd-yyyy");
 
 
-                        msg.setText("La réservatio, pour le livre :" + books.getTitle() + " est annulée"
-                        );
-                        System.out.println("email sended");
-                        javaMailSender.send(msg);
-                        Reservation resa = reservationRepository.findReservation(reservations.getIdUser(), reservations.getTitle());
-                        reservationRepository.delete(resa);
-                    }
+                    SimpleMailMessage msg = new SimpleMailMessage();
+                    User user = userRepository.findById(reservations.getIdUser());
+                    msg.setTo(user.getEmail());
+                    msg.setSubject("Livre disponlible");
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("MM-dd-yyyy");
+
+
+                    String date = dateFormat.format(borrowed.getReturnDate());
+                    msg.setText("Le livre :" + books.getTitle() + " est disponible jusqu'au " + next2Day
+
+                    );
+
+                    System.out.println("email sended");
+                    javaMailSender.send(msg);
+                    reserv.setEmailSended(true);
+                    reserv.setLastDate(Date.from(next2Day.atStartOfDay(ZoneId.systemDefault()).toInstant()));
+                    reservationRepository.save(reserv);
+                }
+
+                if (reservations.getTitle().equals(books.getTitle()) && books.getNbCopyAvailable() > 0 && reserv.isEmailSended() && reserv.getLastDate().compareTo(now) > 0) {
+                    SimpleMailMessage msg = new SimpleMailMessage();
+                    User user = userRepository.findById(reservations.getIdUser());
+                    msg.setTo(user.getEmail());
+                    msg.setSubject("Reservation annulé");
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("MM-dd-yyyy");
+
+                    msg.setText("La réservatio, pour le livre :" + books.getTitle() + " est annulée"
+                    );
+                    System.out.println("email sended");
+                    javaMailSender.send(msg);
+                    Reservation resa = reservationRepository.findReservation(reservations.getIdUser(), reservations.getTitle());
+                    reservationRepository.delete(resa);
                 }
             }
         }
@@ -266,6 +267,7 @@ public class LibraryController {
 
     @RequestMapping(value = {"/returnbook"}, method = RequestMethod.GET)
     public void returnBook(@RequestParam("idborrow") int idborrow) {
+
         Borrow borrow = borrowRepository.findBorrowedBook(idborrow);
         Borrowed borrowed = new Borrowed();
         Date now = Date.valueOf(LocalDate.now());
@@ -275,6 +277,8 @@ public class LibraryController {
         borrowed.setReturnDate(now);
         borrowedRepository.save(borrowed);
         borrowRepository.delete(borrow);
+
+        checkReservation();
     }
 
     @RequestMapping(value = {"/role"}, method = RequestMethod.GET)
@@ -285,6 +289,7 @@ public class LibraryController {
 
     @RequestMapping(value = {"/deleteresa"}, method = RequestMethod.GET)
     public void deleteReservations(@RequestParam("idresa") int idresa) {
+
         Reservation resa = reservationRepository.findReservationById(idresa);
         reservationRepository.delete(resa);
     }
@@ -318,12 +323,16 @@ public class LibraryController {
     }
 
     @RequestMapping(value = {"/reserv"})
-    public void reserv(@RequestParam("idbook") int idBook, @RequestParam("iduser") int idUser) {
+    public void reserv(@RequestParam("idbook") int idBook, @RequestParam("iduser") int idUser) throws ParseException {
+        SimpleDateFormat format = new SimpleDateFormat("dd-MM-yyyy");
+        java.util.Date dummy = format.parse("01-01-2000");
         Reservation reservation = new Reservation();
         reservation.setIdBook(idBook);
         reservation.setIdUser(idUser);
         Book book = bookService.findById(idBook);
         reservation.setTitle(book.getTitle());
+        reservation.setEmailSended(false);
+        reservation.setLastDate(dummy);
         reservationRepository.save(reservation);
     }
 
@@ -440,12 +449,7 @@ public class LibraryController {
     public List<Book_List> getAllBooks() {
 
         List<Book_List> listBook = getBooks();
-        for (Book_List books : listBook
-        ) {
-            System.out.println("GET AL BOOK");
-            System.out.println(books.getTitle());
-            System.out.println(books.getIdBook());
-        }
+
 
         return listBook;
     }

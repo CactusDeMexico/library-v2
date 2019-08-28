@@ -1,6 +1,6 @@
 ## Créez un site communautaire autour de l’escalade
 
-Projet 6 [_Créez un site communautaire autour de l’escalade_](https://openclassrooms.com/projects/creez-un-site-communautaire-autour-de-lescalade)
+Projet 10 [_Créez un site communautaire autour de l’escalade_](https://openclassrooms.com/projects/creez-un-site-communautaire-autour-de-lescalade)
 sur [_OpenClassrooms_](https://www.openclassrooms.com).
 
 
