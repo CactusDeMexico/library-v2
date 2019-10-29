@@ -1,6 +1,6 @@
-## Créez un site communautaire autour de l’escalade
+## Développez le nouveau système d’information de la bibliothèque d’une grande ville
 
-Projet 10 [_Créez un site communautaire autour de l’escalade_](https://openclassrooms.com/projects/creez-un-site-communautaire-autour-de-lescalade)
+Projet 10 [ Développez le nouveau système d’information de la bibliothèque d’une grande ville_](https://openclassrooms.com/fr/projects/124/assignment)
 sur [_OpenClassrooms_](https://www.openclassrooms.com).
 
 
